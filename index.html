@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Game</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #quiz {
+      display: none;
+      text-align: center;
+    }
+    #userInfo {
+      text-align: center;
+    }
+    #score {
+      font-size: 24px;
+      margin: 20px;
+    }
+    .option {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    #timer {
+      font-size: 20px;
+      margin: 10px;
+    }
+    #roastPage {
+      display: none;
+      height: 100vh;
+      background-color: #ffebcd;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    #roastMessage {
+      font-size: 40px;
+      font-weight: bold;
+      padding: 50px;
+    }
+
+    .next-btn {
+      font-size: 20px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    
+    .next-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>GK Quiz</h1>
+  <div id="userInfo">
+    <h3>Enter Your Name</h3>
+    <input type="text" id="userName" placeholder="lekh naaw yetn" required>
+    <button onclick="startQuiz()">Start Quiz</button>
+  </div>
+  <div id="quiz">
+    <div id="question"></div>
+    <div id="options">
+      <button class="option" onclick="submitAnswer('a')"></button>
+      <button class="option" onclick="submitAnswer('b')"></button>
+      <button class="option" onclick="submitAnswer('c')"></button>
+      <button class="option" onclick="submitAnswer('d')"></button>
+    </div>
+    <div id="timer"></div>
+    <div id="score">Score: 0</div>
+    <button onclick="nextQuestion()">Next Question</button>
+  </div>
+
+  <div id="roastPage">
+    <div id="roastMessage"></div>
+    <button class="next-btn" onclick="nextAfterRoast()">Next Question</button>
+  </div>
+
+  <script>
+    let userName = '';
+    const questions = [
+      { question: "Who is the first president of the United States?", options: ["George Washington", "Abraham Lincoln", "Thomas Jefferson", "John Adams"], answer: "a" },
+      { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: "c" },
+      { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Venus", "Jupiter"], answer: "b" },
+      { question: "What is the largest ocean on Earth?", options: ["Atlantic Ocean", "Indian Ocean", "Southern Ocean", "Pacific Ocean"], answer: "d" },
+      { question: "Who wrote 'Romeo and Juliet'?", options: ["William Shakespeare", "Mark Twain", "Jane Austen", "Charles Dickens"], answer: "a" },
+      { question: "What is the capital of India?", options: ["New Delhi", "Mumbai", "Kolkata", "Chennai"], answer: "a" },
+      { question: "Who is known as the 'Father of the Nation' in India?", options: ["Jawaharlal Nehru", "Subhas Chandra Bose", "Mahatma Gandhi", "Sardar Patel"], answer: "c" },
+      { question: "Which is the largest state in India by area?", options: ["Maharashtra", "Rajasthan", "Uttar Pradesh", "Madhya Pradesh"], answer: "b" },
+      { question: "Which river is considered the holiest in India?", options: ["Yamuna", "Ganga", "Sarasvati", "Krishna"], answer: "b" },
+      { question: "What is the national animal of India?", options: ["Lion", "Tiger", "Elephant", "Peacock"], answer: "b" },
+      { question: "In which year did India gain independence?", options: ["1945", "1947", "1950", "1952"], answer: "b" },
+      { question: "Who was the first Prime Minister of India?", options: ["Mahatma Gandhi", "Jawaharlal Nehru", "Indira Gandhi", "Rajiv Gandhi"], answer: "b" },
+      { question: "What is the currency of India?", options: ["Dollar", "Euro", "Rupee", "Pound"], answer: "c" },
+      { question: "What is the national flower of India?", options: ["Lotus", "Rose", "Sunflower", "Tulip"], answer: "a" },
+      { question: "Which Indian city is known as the 'Silicon Valley of India'?", options: ["Hyderabad", "Mumbai", "Bengaluru", "Chennai"], answer: "c" },
+      { question: "Who was the first woman Prime Minister of India?", options: ["Sonia Gandhi", "Indira Gandhi", "Pratibha Patil", "Sarojini Naidu"], answer: "b" },
+      { question: "Which Indian state is famous for its tea gardens?", options: ["Gujarat", "West Bengal", "Assam", "Punjab"], answer: "c" },
+      { question: "Which is the largest democracy in the world?", options: ["USA", "India", "China", "Russia"], answer: "b" },
+      { question: "What is the national bird of India?", options: ["Peacock", "Sparrow", "Eagle", "Pigeon"], answer: "a" },
+      { question: "Which is the official language of India?", options: ["Hindi", "English", "Bengali", "Marathi"], answer: "a" },
+      { question: "Who wrote the Indian national anthem?", options: ["Rabindranath Tagore", "Bankim Chandra Chatterjee", "Vande Mataram", "Aurobindo Ghosh"], answer: "a" },
+      { question: "Which is the largest city in India by population?", options: ["Mumbai", "Delhi", "Kolkata", "Bengaluru"], answer: "a" },
+      { question: "Which Indian state is famous for its backwaters?", options: ["Tamil Nadu", "Kerala", "Goa", "Karnataka"], answer: "b" },
+      { question: "Which is the highest civilian award in India?", options: ["Padma Bhushan", "Padma Vibhushan", "Bharat Ratna", "Padma Shri"], answer: "c" },
+      { question: "What is the national motto of India?", options: ["Satyamev Jayate", "Jai Hind", "Vande Mataram", "Bharat Mata Ki Jai"], answer: "a" }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timer = 30;
+    let interval;
+
+    function startQuiz() {
+      userName = document.getElementById('userName').value.trim();
+      if (userName) {
+        document.getElementById('userInfo').style.display = 'none';
+        document.getElementById('quiz').style.display = 'block';
+        loadQuestion();
+      } else {
+        alert("Please enter your name.");
+      }
+    }
+
+    function loadQuestion() {
+      if (currentQuestion < questions.length) {
+        document.getElementById('question').innerText = questions[currentQuestion].question;
+
+        const options = questions[currentQuestion].options;
+        for (let i = 0; i < options.length; i++) {
+          document.getElementsByClassName('option')[i].innerText = options[i];
+        }
+
+        startTimer();
+      } else {
+        clearInterval(interval);
+        alert(userName + ", Quiz Finished! Your Score: " + score);
+      }
+    }
+
+    function submitAnswer(answer) {
+      if (answer !== questions[currentQuestion].answer) {
+        const roasts = [
+          "dopmi su watee ghrai!",
+          "che cheth zindage zaye krmchh!",
+          "Hoo yara che ktt aakh",
+          "che Chuka Pagal",
+          "che pazi pannes qismats wadun",
+          "che maa khechi nender ",
+          "maa krr next buttons pth click aat tage ne kheen"
+        ];
+        const fonts = [
+          "Arial, sans-serif",
+          "Courier New, Courier, monospace",
+          "Georgia, serif",
+          "Verdana, Geneva, sans-serif",
+          "Times New Roman, Times, serif",
+          "Comic Sans MS, cursive, sans-serif",
+          "Lucida Console, Monaco, monospace"
+        ];
+
+        const randomRoast = roasts[Math.floor(Math.random() * roasts.length)];
+        const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+        document.getElementById('roastMessage').innerText = randomRoast;
+        document.getElementById('roastMessage').style.fontFamily = randomFont;
+
+        document.getElementById('roastPage').style.display = 'flex'; 
+        document.getElementById('quiz').style.display = 'none'; 
+
+        return; 
+      }
+
+      score++;
+      document.getElementById('score').innerText = 'Score: ' + score;
+      clearInterval(interval);
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      timer = 30;
+      loadQuestion();
+    }
+
+    function nextAfterRoast() {
+      document.getElementById('roastPage').style.display = 'none';
+      document.getElementById('quiz').style.display = 'block';
+      nextQuestion();
+    }
+
+    function startTimer() {
+      interval = setInterval(() => {
+        timer--;
+        document.getElementById('timer').innerText = 'Time: ' + timer;
+
+        if (timer <= 0) {
+          clearInterval(interval);
+          nextQuestion();
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
